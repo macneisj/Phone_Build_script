@@ -6,7 +6,7 @@ Just edit the script --- include packages, kernel etc and test. Or use as a phon
   
 Currently I am Using on Fxtec Pro1x. V_2 boots and seems to stabilize touch. I am using kernel 6.18-rc6 debian.  
   
-V_2 will be about getting fluxbox working with onboard so i can debug.  
+V_2 will be about getting fluxbox working with onboard so i can debug. And booting better. 
   
 Would be nice for PinePhone  
   
@@ -14,7 +14,8 @@ Would be nice for PinePhone
 # Files  
   
 patches/apply_patches.sh # test patches  
-patches/display-fixes-v618-v2.patch # regulator/delay hack to get it to boot ... will fix  
+patches/display-regression-6.18-all-dtsi.patch # regulator/delay hack ... will fix  
+patches/display-regression-6.18-all-dts.patch  
   
 full_build_script-fluxbox-V2.sh # current build script  
 MK_img-FINAL.sh # to make small adjustments  
@@ -24,6 +25,8 @@ MGL.config # current .config
 boot.img  
 rootfs.img  
 vbmeta.img # probably not needed  
+
+Note: Boots black
   
 # remove .Image.gz-dtb when done  
   
