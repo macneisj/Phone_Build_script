@@ -87,19 +87,57 @@ INIT_SCRIPT
     echo "Custom initramfs complete."
 }
 
+# Chroot Section add remove to test
+
+sudo cp "/usr/bin/qemu-aarch64-static" "$ROOTFS_DIR/usr/bin/"
+sudo cp "/etc/resolv.conf" "$ROOTFS_DIR/etc/"
+
+echo "Mounting essential filesystems for chroot..."
+sudo mkdir -p "$ROOTFS_DIR/dev/pts"
+sudo mount --rbind /dev "$ROOTFS_DIR/dev"
+sudo mount --rbind /sys "$ROOTFS_DIR/sys"
+sudo mount --rbind /proc "$ROOTFS_DIR/proc"
+sudo mount --rbind /run "$ROOTFS_DIR/run"
+sudo mount --make-slave "$ROOTFS_DIR/dev"
+sudo mount --make-slave "$ROOTFS_DIR/sys"
+sudo mount --make-slave "$ROOTFS_DIR/proc"
+sudo mount --make-slave "$ROOTFS_DIR/run"
+sudo mount -t devpts devpts "$ROOTFS_DIR/dev/pts" -o newinstance,ptmxmode=0666,mode=0620,gid=5
+
+echo "nameserver 8.8.8.8" | sudo tee "$ROOTFS_DIR/etc/resolv.conf"
+
+echo "Entering chroot to configure the rootfs..."
+#sudo chroot "$ROOTFS_DIR" apt install -y firmware-iwlwifi firmware-qcom-soc firmware-linux qcom-phone-utils
+
+echo "Unmounting essential filesystems..."
+sudo umount -lR "$ROOTFS_DIR/dev" || true
+sudo umount -lR "$ROOTFS_DIR/sys" || true
+sudo umount -lR "$ROOTFS_DIR/proc" || true
+sudo umount -lR "$ROOTFS_DIR/run" || true
+
+echo "Cleaning up temporary files on the host."
+sudo rm "$ROOTFS_DIR/usr/bin/qemu-aarch64-static"
+sudo rm "$ROOTFS_DIR/etc/resolv.conf"
+
+# End Chroot
+
+sudo cp $ROOTFS_DIR/etc/X11/fluxbox/* $ROOTFS_DIR/home/user/.fluxbox
+
 # Start xterm and onboard
 sudo mkdir -p $ROOTFS_DIR/home/user/.fluxbox
 cat <<'FLUXBOX_STARTUP' | sudo tee  $ROOTFS_DIR/home/user/.fluxbox/startup >/dev/null
-xterm -e onboard &
+qutebrowser http://google.ca &
+xterm -e dmesg | grep error &
 xrandr --output DSI-1 --scale .5x.5 &
 xrandr --output DSI-0 --scale .5x.5 &
 exec fluxbox
 FLUXBOX_STARTUP
-
 # Set Permissions
-sudo chown 1000:1000 $ROOTFS_DIR/home/user/.fluxbox/startup
+sudo chown 1000:1000 $ROOTFS_DIR/home/user/.fluxbox/*
 sudo chmod 755 $ROOTFS_DIR/home/user/.fluxbox
-sudo chmod +x $ROOTFS_DIR/home/user/.fluxbox/startup
+
+# sudo chmod +x $ROOTFS_DIR/home/user/.fluxbox/startup
+
 
 # Fix systemd-logind and resize-rootfs startup timing
 echo "systemd logind/resize-rootfs timing rules"
@@ -121,40 +159,6 @@ Requires=local-fs.target
 [Service]
 ExecStartPre=/bin/bash -c 'for i in $(seq 1 15); do [ -b /dev/disk/by-partlabel/userdata ] && exit 0; sleep 1; done; exit 0'
 EOF
-
-# Chroot Section add remove to test
-
-sudo cp "/usr/bin/qemu-aarch64-static" "$ROOTFS_DIR/usr/bin/"
-sudo cp "/etc/resolv.conf" "$ROOTFS_DIR/etc/"
-
-echo "Mounting essential filesystems for chroot..."
-sudo mkdir -p "$ROOTFS_DIR/dev/pts"
-sudo mount --rbind /dev "$ROOTFS_DIR/dev"
-sudo mount --rbind /sys "$ROOTFS_DIR/sys"
-sudo mount --rbind /proc "$ROOTFS_DIR/proc"
-sudo mount --rbind /run "$ROOTFS_DIR/run"
-sudo mount --make-slave "$ROOTFS_DIR/dev"
-sudo mount --make-slave "$ROOTFS_DIR/sys"
-sudo mount --make-slave "$ROOTFS_DIR/proc"
-sudo mount --make-slave "$ROOTFS_DIR/run"
-sudo mount -t devpts devpts "$ROOTFS_DIR/dev/pts" -o newinstance,ptmxmode=0666,mode=0620,gid=5
-
-echo "nameserver 8.8.8.8" | sudo tee "$ROOTFS_DIR/etc/resolv.conf"
-
-echo "Entering chroot to configure the rootfs..."
-sudo chroot "$ROOTFS_DIR" apt install -y firmware-iwlwifi firmware-qcom-soc firmware-linux qcom-phone-utils
-
-echo "Unmounting essential filesystems..."
-sudo umount -lR "$ROOTFS_DIR/dev" || true
-sudo umount -lR "$ROOTFS_DIR/sys" || true
-sudo umount -lR "$ROOTFS_DIR/proc" || true
-sudo umount -lR "$ROOTFS_DIR/run" || true
-
-echo "Cleaning up temporary files on the host."
-sudo rm "$ROOTFS_DIR/usr/bin/qemu-aarch64-static"
-sudo rm "$ROOTFS_DIR/etc/resolv.conf"
-
-# End Chroot
 
 # Firmware moved to dts location for fxtec pro1x - correct debian non-free-firmware
 sudo mkdir -p $ROOTFS_DIR/lib/firmware/qcom/sm6115/Fxtec/QX1050/
