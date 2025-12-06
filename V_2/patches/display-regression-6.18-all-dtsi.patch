@@ -1,0 +1,30 @@
+--- a/arch/arm64/boot/dts/qcom/sm6115.dtsi
++++ b/arch/arm64/boot/dts/qcom/sm6115.dtsi
+@@ -1687,7 +1687,6 @@
+ 				snps,has-lpm-erratum;
+ 				snps,hird-threshold = /bits/ 8 <0x10>;
+ 				snps,usb3_lpm_capable;
+-				snps,parkmode-disable-ss-quirk;
+ 
+ 				usb-role-switch;
+ 
+@@ -1883,7 +1882,7 @@
+ 			mdp: display-controller@5e01000 {
+ 				compatible = "qcom,sm6115-dpu";
+ 				reg = <0x0 0x05e01000 0x0 0x8f000>,
+-				      <0x0 0x05eb0000 0x0 0x3000>;
++				      <0x0 0x05eb0000 0x0 0x2008>;
+ 				reg-names = "mdp", "vbif";
+ 
+ 				clocks = <&gcc GCC_DISP_HF_AXI_CLK>,
+@@ -1970,8 +1969,8 @@
+ 
+ 				assigned-clocks = <&dispcc DISP_CC_MDSS_BYTE0_CLK_SRC>,
+ 						  <&dispcc DISP_CC_MDSS_PCLK0_CLK_SRC>;
+-				assigned-clock-parents = <&mdss_dsi0_phy DSI_BYTE_PLL_CLK>,
+-							 <&mdss_dsi0_phy DSI_PIXEL_PLL_CLK>;
++				assigned-clock-parents = <&mdss_dsi0_phy 0>,
++						  <&mdss_dsi0_phy 1>;
+ 
+ 				operating-points-v2 = <&dsi_opp_table>;
+ 				power-domains = <&rpmpd SM6115_VDDCX>;

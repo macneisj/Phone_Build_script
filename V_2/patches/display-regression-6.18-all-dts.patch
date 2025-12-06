@@ -1,0 +1,145 @@
+--- a/arch/arm64/boot/dts/qcom/sm6115-fxtec-pro1x.dts
++++ b/arch/arm64/boot/dts/qcom/sm6115-fxtec-pro1x.dts
+@@ -11,6 +11,7 @@
+ #include <dt-bindings/arm/qcom,ids.h>
+ #include <dt-bindings/leds/common.h>
+ #include <dt-bindings/usb/pd.h>
++#include <dt-bindings/interrupt-controller/arm-gic.h>
+ 
+ / {
+ 	model = "F(x)tec Pro1X (QX1050)";
+@@ -34,25 +35,29 @@
+ 			clocks = <&gcc GCC_DISP_HF_AXI_CLK>;
+ 		};
+ 	};
+-
+-	disp_elvdd_supply: disp-elvdd-supply {
+-		compatible = "regulator-fixed";
+-		regulator-name = "disp_elvdd_supply";
+-	};
+-
+-	disp_elvss_supply: disp-elvss-supply {
+-		compatible = "regulator-fixed";
+-		regulator-name = "disp_elvss_supply";
+-	};
+-
+-	disp_vcc_supply: disp-vcc-supply {
++	/* Panel Power Supply: 5V rail for the display */
++	panel_edp_supply: panel-edp-supply {
+ 		compatible = "regulator-fixed";
+-		regulator-name = "disp_vcc_supply";
+-	};
+-
+-	disp_vci_supply: disp-vci-supply {
+-		compatible = "regulator-fixed";
+-		regulator-name = "disp_vci_supply";
++		regulator-name = "panel_edp_supply";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		gpio = <&tlmm 100 GPIO_ACTIVE_HIGH>;
++		startup-delay-us = <20000>;
++	};
++
++	dsi_panel_pinctrl: dsi-panel-pinctrl {
++		compatible = "qcom,pm6150l-dsi-pinctrl";
++
++		dsi_panel_reset: dsi-panel-reset-pins {
++			pins = "gpio1";
++			function = "gpio";
++
++			config {
++				qcom,drive-strength = <12>;
++				qcom,pull = <0>;
++				qcom,output-high;
++			};
++		};
+ 	};
+ 
+ 	gpio-keys {
+@@ -168,6 +173,9 @@
+ &mdss_dsi0 {
+ 	vdda-supply = <&pm6125_l18a>;
+ 	status = "okay";
++	qcom,num-dsi-ports = <1>;
++	qcom,dsi-lane-map = <0 1 2 3>;
++	qcom,num-dsi-lanes = <4>;
+ 
+ 	panel: panel@0 {
+ 		compatible = "boe,bf060y8m-aj0";
+@@ -175,15 +183,15 @@
+ 
+ 		reset-gpios = <&tlmm 82 GPIO_ACTIVE_LOW>;
+ 
+-		elvdd-supply = <&disp_elvdd_supply>;
+-		elvss-supply = <&disp_elvss_supply>;
+-		vcc-supply = <&disp_vcc_supply>;
+-		vci-supply = <&disp_vci_supply>;
++		vdds-supply = <&panel_edp_supply>; /* 5V panel supply */
++
+ 		vddio-supply = <&pm6125_l9a>;
+ 
+ 		pinctrl-0 = <&mdss_dsi_n &panel_en_n>;
+ 		pinctrl-names = "default";
+ 
++		status = "okay";
++
+ 		port {
+ 			panel_in: endpoint {
+ 				remote-endpoint = <&mdss_dsi0_out>;
+@@ -478,41 +486,41 @@
+ &tlmm {
+ 	gpio-reserved-ranges = <0 4>, <14 4>;
+ 
+-	key_camera_n: key-camera-n-state {
++	key_camera_n: key-camera-n {
+ 		pins = "gpio18";
+ 		function = "gpio";
+ 		drive-strength = <2>;
+ 		bias-pull-up;
+ 	};
+ 
+-	panel_en_n: panel-en-n-state {
++	panel_en_n: panel-en-n {
+ 		pins = "gpio65";
+ 		function = "gpio";
+ 		bias-disable;
+ 	};
+ 
+-	ts_rst_n: ts-rst-n-state {
++	ts_rst_n: ts-rst-n {
+ 		pins = "gpio71";
+ 		function = "gpio";
+ 		drive-strength = <8>;
+ 		bias-pull-up;
+ 	};
+ 
+-	ts_int_n: ts-int-n-state {
++	ts_int_n: ts-int-n {
+ 		pins = "gpio80";
+ 		function = "gpio";
+ 		drive-strength = <8>;
+ 		bias-pull-up;
+ 	};
+ 
+-	mdss_dsi_n: mdss-dsi-n-state {
++	mdss_dsi_n: mdss-dsi-n {
+ 		pins = "gpio82";
+ 		function = "gpio";
+ 		drive-strength = <8>;
+ 		bias-disable;
+ 	};
+ 
+-	hall_sensor_n: hall-sensor-n-state {
++	hall_sensor_n: hall-sensor-n {
+ 		pins = "gpio96";
+ 		function = "gpio";
+ 		drive-strength = <2>;
+@@ -566,7 +574,7 @@
+ 	vdd-1.3-rfa-supply = <&pm6125_l17a>;
+ 	vdd-3.3-ch0-supply = <&pm6125_l23a>;
+ 
+-	qcom,calibration-variant = "Fxtec_QX1050";
++	qcom,ath10k-calibration-variant = "Fxtec_QX1050";
+ 
+ 	status = "okay";
+ };
