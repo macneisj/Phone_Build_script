@@ -1,0 +1,11 @@
+--- ../sm6115-fxtec-pro1x.dts-6.18.txt	2025-11-21 16:39:01.751623278 -0500
++++ ../linux-6.18/arch/arm64/boot/dts/qcom/sm6115-fxtec-pro1x.dts	2025-12-06 10:51:01.201143419 -0500
+@@ -151,7 +151,7 @@
+ 
+ 		interrupts-extended = <&tlmm 80 IRQ_TYPE_LEVEL_LOW>;
+ 
+-		irq-gpios = <&tlmm 80 IRQ_TYPE_LEVEL_LOW>;
++		irq-gpios = <&tlmm 80 GPIO_ACTIVE_LOW>;
+ 		reset-gpios = <&tlmm 71 GPIO_ACTIVE_HIGH>;
+ 		AVDD28-supply = <&ts_vdd_supply>;
+ 		VDDIO-supply = <&ts_vddio_supply>;
