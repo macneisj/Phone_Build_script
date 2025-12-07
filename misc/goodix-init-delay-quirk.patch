@@ -1,0 +1,28 @@
+--- a/drivers/input/touchscreen/goodix.c
++++ b/drivers/input/touchscreen/goodix.c
+@@ -1298,6 +1298,25 @@
+ 	const char *cfg_name;
+ 	int error;
+ 
++	u32 delay_ms = 0;
++	int ret;
++
++	ret = device_property_read_u32(&client->dev, "goodix,init-delay-ms", &delay_ms);
++	if (ret && device_property_read_u32(&client->dev, "reset-delay-ms", &delay_ms))
++		delay_ms = 0;
++
++	if (delay_ms > 0) {
++		dev_info(&client->dev,
++			 "Applying Goodix init delay: %u ms (from DT)\n",
++			 delay_ms);
++		msleep(delay_ms);
++	}
++
++	/*
++	 * Some GT9286 panels on Fxtec Pro1X need ~15ms or more to stabilize after
++	 * power-on or reset before I²C works correctly.
++	 */
++
+ 	dev_dbg(&client->dev, "I2C Address: 0x%02x\n", client->addr);
+ 
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
